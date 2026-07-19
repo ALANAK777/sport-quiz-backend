@@ -69,24 +69,32 @@ def init_vector_store():
         print(f"Database already populated with {collection.count()} facts.")
 
 def query_sports_facts(sport: str, difficulty: str = None, n_results: int = 5):
-    client = get_chroma_client()
-    collection = client.get_collection(name="sports_facts")
-    
-    results = collection.query(
-        query_texts=[f"{sport} {difficulty or ''}"],
-        n_results=n_results,
-        where={"sport": sport}
-    )
-    
-    retrieved = []
-    if results and results["documents"] and len(results["documents"]) > 0:
-        for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
-            retrieved.append({
-                "text": doc,
-                "sport": meta["sport"],
-                "difficulty": meta["difficulty"]
-            })
-    return retrieved
+    try:
+        client = get_chroma_client()
+        collection = client.get_or_create_collection(name="sports_facts")
+        
+        # Ensure collection is seeded if count is 0
+        if collection.count() == 0:
+            init_vector_store()
+            
+        # Perform metadata retrieval (requires NO ONNX embedding model download)
+        results = collection.get(
+            where={"sport": sport},
+            limit=n_results
+        )
+        
+        retrieved = []
+        if results and results.get("documents") and len(results["documents"]) > 0:
+            for doc, meta in zip(results["documents"], results["metadatas"]):
+                retrieved.append({
+                    "text": doc,
+                    "sport": meta.get("sport", sport),
+                    "difficulty": meta.get("difficulty", difficulty or "Medium")
+                })
+        return retrieved
+    except Exception as e:
+        print(f"ChromaDB retrieval notice: {e}")
+        return []
 
 if __name__ == "__main__":
     init_vector_store()
