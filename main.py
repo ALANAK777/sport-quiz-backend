@@ -31,11 +31,16 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for frontend communication (running on localhost:5173 by default)
+# Enable CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify the actual origins
-    allow_credentials=True,
+    allow_origins=[
+        "https://sport-quiz-frontend.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "*"
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -43,6 +48,15 @@ app.add_middleware(
 class QuizGenerationRequest(BaseModel):
     sport: str
     difficulty: str = "Medium"
+
+@app.get("/")
+def root():
+    """Root endpoint confirming backend server status."""
+    return {
+        "message": "Sports Quiz AI Backend is running successfully!",
+        "status": "online",
+        "docs": "/docs"
+    }
 
 @app.get("/api/status")
 def get_status():
