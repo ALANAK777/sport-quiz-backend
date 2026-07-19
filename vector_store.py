@@ -1,11 +1,19 @@
 import os
-import chromadb
 
-# Define DB directory (Use /tmp directory on Vercel serverless)
-if os.getenv("VERCEL"):
+# Redirect HOME and cache directories to /tmp on Vercel serverless environment
+try:
+    if os.getenv("VERCEL") or not os.access(os.path.expanduser("~"), os.W_OK):
+        os.environ["HOME"] = "/tmp"
+        os.environ["TMPDIR"] = "/tmp"
+        os.environ["HF_HOME"] = "/tmp/hf"
+        os.environ["CHROMADB_CACHE_DIR"] = "/tmp/chroma"
+        DB_DIR = "/tmp/chroma_db"
+    else:
+        DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db")
+except Exception:
     DB_DIR = "/tmp/chroma_db"
-else:
-    DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db")
+
+import chromadb
 
 def get_chroma_client():
     return chromadb.PersistentClient(path=DB_DIR)

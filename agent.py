@@ -1,4 +1,15 @@
 import os
+
+# Redirect HOME and cache directories to /tmp on Vercel serverless environment
+try:
+    if os.getenv("VERCEL") or not os.access(os.path.expanduser("~"), os.W_OK):
+        os.environ["HOME"] = "/tmp"
+        os.environ["TMPDIR"] = "/tmp"
+        os.environ["HF_HOME"] = "/tmp/hf"
+        os.environ["CHROMADB_CACHE_DIR"] = "/tmp/chroma"
+except Exception:
+    pass
+
 from typing import List, Dict, Any
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv

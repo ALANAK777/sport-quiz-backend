@@ -1,4 +1,15 @@
 import os
+
+# Ensure all library caches and HOME paths point to /tmp on serverless environments (Vercel)
+try:
+    if os.getenv("VERCEL") or not os.access(os.path.expanduser("~"), os.W_OK):
+        os.environ["HOME"] = "/tmp"
+        os.environ["TMPDIR"] = "/tmp"
+        os.environ["HF_HOME"] = "/tmp/hf"
+        os.environ["CHROMADB_CACHE_DIR"] = "/tmp/chroma"
+except Exception:
+    pass
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Header, status
 from fastapi.middleware.cors import CORSMiddleware
