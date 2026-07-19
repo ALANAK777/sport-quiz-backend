@@ -1,0 +1,21 @@
+# Environment Variables & Secrets
+.env
+*.env
+!.env.example
+
+# Python & Virtual Environments
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Vector Database (Generated local data)
+chroma_db/
+
+# OS Files
+.DS_Store
+Thumbs.db
