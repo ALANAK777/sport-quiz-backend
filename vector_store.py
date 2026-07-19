@@ -16,7 +16,19 @@ except Exception:
 import chromadb
 
 def get_chroma_client():
-    return chromadb.PersistentClient(path=DB_DIR)
+    api_key = os.getenv("CHROMA_API_KEY", "ck-7mUW3vFwwCBdvgA7NC3B9GQdpHp4LM2VgQMfjfbUVBxk")
+    tenant = os.getenv("CHROMA_TENANT", "2c1709cc-2370-4b37-8b9c-bad65dddf65c")
+    database = os.getenv("CHROMA_DATABASE", "sports-quiz-app")
+    
+    try:
+        return chromadb.CloudClient(
+            api_key=api_key,
+            tenant=tenant,
+            database=database
+        )
+    except Exception as e:
+        print(f"Chroma Cloud connection notice: {e}. Using PersistentClient fallback.")
+        return chromadb.PersistentClient(path=DB_DIR)
 
 def init_vector_store():
     client = get_chroma_client()
