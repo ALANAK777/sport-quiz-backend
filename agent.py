@@ -78,9 +78,12 @@ def generate_sports_quiz(sport: str, difficulty: str = "Medium", gemini_api_key:
     current_month_name = now.strftime("%B")
     current_date_str = now.strftime("%B %d, %Y")
 
-    search_query = f"latest {sport} sports news winners tournament results {prev_year} {current_year} {current_month_name}"
+    search_query = f"{sport} sports trivia news champions {prev_year} {current_year}"
     print(f"Searching the web for: '{search_query}'...")
-    web_results = web_search(search_query, max_results=6)
+    web_results = web_search(search_query, max_results=5)
+    if not web_results:
+        fallback_query = f"{sport} sports news highlights"
+        web_results = web_search(fallback_query, max_results=5)
     
     # Format contexts for LLM prompt
     chroma_context_str = ""

@@ -76,6 +76,7 @@ def query_sports_facts(sport: str, difficulty: str = None, n_results: int = 5):
         # Ensure collection is seeded if count is 0
         if collection.count() == 0:
             init_vector_store()
+            collection = client.get_or_create_collection(name="sports_facts")
             
         # Perform metadata retrieval (requires NO ONNX embedding model download)
         results = collection.get(
