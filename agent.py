@@ -34,25 +34,32 @@ class Quiz(BaseModel):
     difficulty: str = Field(description="The difficulty level.")
     questions: List[QuizQuestion] = Field(description="List of 4 to 5 quiz questions.")
 
-def web_search(query: str, max_results: int = 6) -> List[Dict[str, str]]:
+def web_search(query: str, max_results: int = 5) -> List[Dict[str, str]]:
     """Runs a DuckDuckGo search for the given query and returns titles, bodies, and links."""
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
-            if not results:
-                return []
+    import time
+    backends = ["api", "html", "lite"]
+    for b in backends:
+        try:
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, backend=b, max_results=max_results))
+                if results:
+                    search_items = []
+                    for r in results:
+                        title = r.get("title", "No Title")
+                        snippet = r.get("body") or r.get("snippet") or title
+                        url = r.get("href") or r.get("url") or ""
+                        if snippet:
+                            search_items.append({
+                                "title": title,
+                                "snippet": snippet,
+                                "url": url
+                            })
+                    return search_items
+        except Exception as e:
+            print(f"DuckDuckGo search backend '{b}' notice: {e}")
+            time.sleep(0.4)
             
-            search_items = []
-            for r in results:
-                search_items.append({
-                    "title": r.get("title", "No Title"),
-                    "snippet": r.get("body", ""),
-                    "url": r.get("href", "")
-                })
-            return search_items
-    except Exception as e:
-        print(f"Error during web search: {e}")
-        return []
+    return []
 
 def generate_sports_quiz(sport: str, difficulty: str = "Medium", gemini_api_key: str = None) -> Dict[str, Any]:
     """
@@ -78,12 +85,9 @@ def generate_sports_quiz(sport: str, difficulty: str = "Medium", gemini_api_key:
     current_month_name = now.strftime("%B")
     current_date_str = now.strftime("%B %d, %Y")
 
-    search_query = f"{sport} sports trivia news champions {prev_year} {current_year}"
+    search_query = f"{sport} sports news trivia highlights"
     print(f"Searching the web for: '{search_query}'...")
     web_results = web_search(search_query, max_results=5)
-    if not web_results:
-        fallback_query = f"{sport} sports news highlights"
-        web_results = web_search(fallback_query, max_results=5)
     
     # Format contexts for LLM prompt
     chroma_context_str = ""
